@@ -29,6 +29,7 @@
     .result {
       margin-top: 1rem;
       font-weight: bold;
+      white-space: pre-wrap;
     }
     .button-group {
       display: flex;
@@ -59,7 +60,7 @@
       }
     }
     .value {
-      display: block;
+      display: block !important;
       font-weight: bold;
       color: #222;
       margin: 0.25rem 0;
@@ -119,7 +120,7 @@
       document.getElementById("resteValue").value = "";
 
       tableValue = Math.random() < 0.5 ? 5 : 25;
-      document.getElementById("tableValue").innerText = tableValue;
+      document.getElementById("tableValue").innerHTML = `<span>${tableValue}</span>`;
 
       let html = "";
       jeuTotal = 0;
@@ -173,7 +174,9 @@
       let joueurMontant = options.find(v => v >= jeuTotal);
       if (!joueurMontant) joueurMontant = 2500;
 
-      document.getElementById("playerAmount").innerText = joueurMontant + " €";
+      document.getElementById("playerAmount").innerHTML = `<span>${joueurMontant} €</span>`;
+      document.getElementById("playerAmount").style.display = "block";
+      document.getElementById("tableValue").style.display = "block";
     }
 
     function checkAnswers() {
