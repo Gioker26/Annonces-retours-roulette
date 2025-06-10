@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entraînement Annonces Roulette</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background: #f4f4f4;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 1rem auto;
+    }
+    input, button {
+      padding: 0.75rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .result {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    @media (min-width: 600px) {
+      .button-group {
+        flex-direction: row;
+      }
+      .button-group button {
+        flex: 1;
+      }
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 1rem;
+      }
+      .container {
+        padding: 1rem;
+      }
+      ul#annoncesList {
+        padding-left: 1.2rem;
+      }
+      p, label {
+        font-size: 1rem;
+        word-wrap: break-word;
+      }
+    }
+    .value {
+      display: block;
+      font-weight: bold;
+      color: #222;
+      margin: 0.25rem 0;
+      font-size: 1.1rem;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Annonces Roulette - Entraînement Croupier</h2>
+    <p><strong>Montant donné par le joueur :</strong><br><div class="value" id="playerAmount">-</div></p>
+    <p><strong>Valeur de table :</strong><br><div class="value" id="tableValue">-</div> €/pièce</p>
+    <p><strong>Annonces :</strong></p>
+    <ul id="annoncesList"></ul>
+
+    <label for="jeuValue">Montant total du jeu (€) :</label>
+    <input type="number" id="jeuValue">
+
+    <label for="resteValue">Montant à rendre (€) :</label>
+    <input type="number" id="resteValue">
+
+    <div class="button-group">
+      <button onclick="checkAnswers()">Vérifier</button>
+      <button onclick="tirerAnnonces()">Nouvel exercice</button>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const annonces = [
+      { nom: "voisins du zéro", pieces: 9 },
+      { nom: "orphelins", pieces: 5 },
+      { nom: "tier", pieces: 6 },
+      { nom: "finale", pieces: [4, 4, 4, 4, 4, 4, 4, 3, 3, 3] },
+      { nom: "finale à cheval", sets: {
+          "0/1": 5, "1/2": 5, "2/3": 5, "4/5": 5, "5/6": 5,
+          "0/3": 4, "1/4": 4, "2/5": 4, "3/6": 4, "7/8": 4, "8/9": 4,
+          "4/7": 3, "5/8": 3, "6/9": 3
+        }
+      },
+      { nom: "numéro et chevaux", sets: {
+          2: 5, 5: 5, 8: 5, 11: 5, 14: 5, 17: 5, 20: 5, 23: 5, 26: 5, 29: 5, 32: 5,
+          0: 4, 1: 4, 3: 4, 4: 4, 6: 4, 7: 4, 9: 4, 10: 4, 12: 4, 13: 4, 15: 4, 16: 4, 18: 4, 19: 4, 21: 4, 22: 4, 24: 4, 25: 4, 27: 4, 28: 4, 30: 4, 31: 4, 33: 4, 35: 4,
+          34: 3, 36: 3
+        }
+      }
+    ];
+
+    let tableValue = 5;
+    let jeuTotal = 0;
+
+    function tirerAnnonces() {
+      document.getElementById("result").innerText = "";
+      tableValue = Math.random() < 0.5 ? 5 : 25;
+      document.getElementById("tableValue").innerText = tableValue;
+
+      let html = "";
+      jeuTotal = 0;
+      const annoncesList = [];
+
+      const types = ["orphelins", "tier", "voisins du zéro", "finale", "finale à cheval", "numéro et chevaux"];
+      const selection = [];
+      while (selection.length < 2) {
+        const choix = types[Math.floor(Math.random() * types.length)];
+        if (!selection.includes(choix)) selection.push(choix);
+      }
+
+      selection.forEach(type => {
+        let libelle = "";
+        let pieces = 0;
+
+        const pieceParAnnonce = Math.floor(Math.random() * 5) + 1;
+
+        if (type === "finale") {
+          const finaleNum = Math.floor(Math.random() * 10);
+          libelle = `Finale ${finaleNum} par ${pieceParAnnonce * tableValue}€`;
+          pieces = annonces[3].pieces[finaleNum] * pieceParAnnonce;
+        } else if (type === "finale à cheval") {
+          const keys = Object.keys(annonces[4].sets);
+          const choix = keys[Math.floor(Math.random() * keys.length)];
+          libelle = `Finale ${choix} par ${pieceParAnnonce * tableValue}€`;
+          pieces = annonces[4].sets[choix] * pieceParAnnonce;
+        } else if (type === "numéro et chevaux") {
+          const numeros = Object.keys(annonces[5].sets);
+          const tirage = [];
+          while (tirage.length < Math.floor(Math.random() * 3) + 1) {
+            const pick = numeros[Math.floor(Math.random() * numeros.length)];
+            if (!tirage.includes(pick)) tirage.push(pick);
+          }
+          const liste = tirage.join(", ");
+          libelle = `${liste} et chevaux par ${pieceParAnnonce * tableValue}€`;
+          tirage.forEach(n => pieces += annonces[5].sets[n] * pieceParAnnonce);
+        } else {
+          const obj = annonces.find(a => a.nom === type);
+          libelle = `${type.charAt(0).toUpperCase() + type.slice(1)} par ${pieceParAnnonce * tableValue}€`;
+          pieces = obj.pieces * pieceParAnnonce;
+        }
+
+        jeuTotal += pieces * tableValue;
+        html += `<li>${libelle}</li>`;
+      });
+
+      document.getElementById("annoncesList").innerHTML = html;
+
+      const options = [100, 500, 2500];
+      let joueurMontant = options.find(v => v >= jeuTotal);
+      if (!joueurMontant) joueurMontant = 2500;
+
+      document.getElementById("playerAmount").innerText = joueurMontant + " €";
+    }
+
+    function checkAnswers() {
+      const jeuVal = parseInt(document.getElementById("jeuValue").value);
+      const resteVal = parseInt(document.getElementById("resteValue").value);
+      const options = [100, 500, 2500];
+      const joueurMontant = options.find(v => v >= jeuTotal) || 2500;
+
+      const isJeuCorrect = jeuVal === jeuTotal;
+      const isResteCorrect = resteVal === (joueurMontant - jeuTotal);
+
+      let result = "";
+      result += isJeuCorrect ? "✅ Montant du jeu correct.\n" : `❌ Faux : le bon montant est ${jeuTotal}€.\n`;
+      result += isResteCorrect ? "✅ Rendu au joueur correct." : `❌ Faux : à rendre ${joueurMontant - jeuTotal}€.`;
+
+      document.getElementById("result").innerText = result;
+    }
+
+    tirerAnnonces();
+  </script>
+</body>
+</html>
